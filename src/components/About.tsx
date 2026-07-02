@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'motion/react';
-import { User, Award, CheckSquare, Sparkles, Code, Hammer, Phone, Mail, MapPin, Linkedin, ArrowUpRight, Cpu } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { User, Award, CheckSquare, Sparkles, Code, Hammer, Phone, Mail, MapPin, Linkedin, ArrowUpRight, Cpu, X, Maximize2 } from 'lucide-react';
 import { PERSONAL_INFO, SKILLS } from '../data';
 
 export default function About() {
@@ -18,6 +18,9 @@ export default function About() {
   // Static profile image from data.ts, with graceful fallback if it fails to load
   const [imageFailed, setImageFailed] = React.useState(false);
   const profileImage = !imageFailed ? (PERSONAL_INFO.profileImage || '') : '';
+
+  // Large photo viewer modal
+  const [showLargePhoto, setShowLargePhoto] = React.useState(false);
 
   // Skill percentages matching the look and feel of progress bars in the reference image
   const skillPercentages: { [key: string]: number } = {
@@ -59,7 +62,7 @@ export default function About() {
               <div className="absolute inset-0 bg-brand-accent/10 dark:bg-brand-accent/10 rounded-full blur-2xl -z-10 animate-pulse" />
 
               {/* The Double Circular Frame */}
-              <div className="w-64 h-64 sm:w-76 sm:h-76 rounded-full p-2.5 border-4 border-brand-accent/40 dark:border-brand-accent/30 relative flex items-center justify-center">
+              <div className="w-64 h-64 sm:w-76 sm:h-76 rounded-full p-2.5 border-4 border-brand-accent/40 dark:border-brand-accent/30 relative flex items-center justify-center group/profile">
                 <div className="w-full h-full rounded-full p-1 border-2 border-dashed border-brand-accent dark:border-brand-accent-dark flex items-center justify-center overflow-hidden bg-zinc-50 dark:bg-dark-card relative">
                   
                   {profileImage ? (
@@ -91,6 +94,20 @@ export default function About() {
                       <line x1="72" y1="34" x2="62" y2="38" stroke="currentColor" strokeWidth="0.75" />
                       <rect x="47" y="10" width="6" height="3" rx="1.5" fill="currentColor" />
                     </svg>
+                  )}
+
+                  {/* View Large Photo overlay (only shown when a real photo is set) */}
+                  {profileImage && (
+                    <button
+                      onClick={() => setShowLargePhoto(true)}
+                      className="absolute inset-0 bg-black/70 opacity-0 group-hover/profile:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 z-30 cursor-pointer"
+                      aria-label="View large profile photo"
+                    >
+                      <Maximize2 className="w-6 h-6 text-white" />
+                      <span className="text-white font-mono text-[10px] font-bold uppercase tracking-wider">
+                        View Large Photo
+                      </span>
+                    </button>
                   )}
                 </div>
               </div>
@@ -223,6 +240,55 @@ export default function About() {
         </div>
 
       </div>
+
+      {/* Large Profile Photo Viewer Modal */}
+      <AnimatePresence>
+        {showLargePhoto && profileImage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-dark-card rounded-2xl border border-zinc-200 dark:border-dark-border shadow-xl max-w-lg w-full overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="p-5 border-b border-zinc-100 dark:border-dark-border flex items-center justify-between">
+                <h3 className="font-display font-extrabold text-base sm:text-lg text-zinc-900 dark:text-white">
+                  {PERSONAL_INFO.name}
+                </h3>
+                <button
+                  onClick={() => setShowLargePhoto(false)}
+                  className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-dark-border transition-colors cursor-pointer"
+                  aria-label="Close photo viewer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Large Photo */}
+              <div className="w-full aspect-square bg-zinc-950 flex items-center justify-center">
+                <img
+                  src={profileImage}
+                  alt={PERSONAL_INFO.name}
+                  referrerPolicy="no-referrer"
+                  onError={() => setImageFailed(true)}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-5 border-t border-zinc-100 dark:border-dark-border flex justify-end">
+                <button
+                  onClick={() => setShowLargePhoto(false)}
+                  className="px-6 py-2.5 bg-brand-accent dark:bg-brand-accent-dark hover:bg-brand-accent-hover dark:hover:bg-white text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow transition-all hover:scale-105 cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
