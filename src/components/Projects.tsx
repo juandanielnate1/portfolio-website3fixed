@@ -449,7 +449,7 @@ export default function Projects() {
                     onClick={() => setSelectedProject(project)}
                     className="mt-6 inline-flex items-center justify-center w-full py-2.5 bg-zinc-50 dark:bg-dark-bg hover:bg-zinc-100 dark:hover:bg-dark-border border border-zinc-200 dark:border-dark-border text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-bold tracking-wide transition-colors cursor-pointer hover:scale-[1.02]"
                   >
-                    View Workflow Details
+                    View Large Workflow
                     <ArrowUpRight className="ml-1.5 w-3.5 h-3.5 text-zinc-500" />
                   </button>
                 </div>
@@ -589,6 +589,18 @@ export default function Projects() {
 
               {/* Modal Content */}
               <div className="p-6 sm:p-8 space-y-6">
+                {getProjectImage(selectedProject) && (
+                  <div className="w-full aspect-video rounded-xl overflow-hidden border border-zinc-200 dark:border-dark-border relative shadow bg-zinc-950 flex items-center justify-center">
+                    <img
+                      src={getProjectImage(selectedProject)}
+                      onError={() => markImageFailed(`project:${selectedProject.id}`)}
+                      alt={selectedProject.title}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
+
                 <div>
                   <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-zinc-400 mb-2">High-level Description</h4>
                   <p className="text-zinc-600 dark:text-zinc-300 text-sm leading-relaxed font-sans font-light">
