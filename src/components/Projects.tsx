@@ -7,9 +7,7 @@ import { Project, Certificate } from '../types';
 export default function Projects() {
   const [activeFilter, setActiveFilter] = useState<'All' | 'n8n' | 'Make.com' | 'Zapier'>('All');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [projectImages, setProjectImages] = useState<{ [key: string]: string }>({});
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
-  const [certificateImages, setCertificateImages] = useState<{ [key: string]: string }>({});
   const [failedImages, setFailedImages] = useState<{ [key: string]: boolean }>({});
 
   const markImageFailed = (key: string) => {
@@ -17,39 +15,11 @@ export default function Projects() {
   };
 
   const getProjectImage = (project: Project) => {
-    const previewImage = projectImages[project.id];
-    if (previewImage) return previewImage;
     return failedImages[`project:${project.id}`] ? undefined : project.imageUrl;
   };
 
   const getCertificateImage = (certificate: Certificate) => {
-    const previewImage = certificateImages[certificate.id];
-    if (previewImage) return previewImage;
     return failedImages[`certificate:${certificate.id}`] ? undefined : certificate.imageUrl;
-  };
-
-  const handleCertificateImageUpload = (certId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCertificateImages(prev => ({
-          ...prev,
-          [certId]: reader.result as string
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleCertificateImageUrlPaste = (certId: string) => {
-    const url = prompt("Please enter the direct URL of your certificate image:");
-    if (url) {
-      setCertificateImages(prev => ({
-        ...prev,
-        [certId]: url
-      }));
-    }
   };
 
   const getThemeClasses = (color: string) => {
@@ -94,30 +64,6 @@ export default function Projects() {
     if (activeFilter === 'All') return true;
     return p.platform === activeFilter;
   });
-
-  const handleImageUpload = (projectId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProjectImages(prev => ({
-          ...prev,
-          [projectId]: reader.result as string
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleImageUrlPaste = (projectId: string) => {
-    const url = prompt("Please enter the direct URL of your workflow screenshot image:");
-    if (url) {
-      setProjectImages(prev => ({
-        ...prev,
-        [projectId]: url
-      }));
-    }
-  };
 
   // Helper to render interactive CSS flow diagram for projects
   const renderWorkflowVisualizer = (type: string) => {
@@ -424,11 +370,6 @@ export default function Projects() {
             Featured Workflow Automation Projects
           </p>
           <div className="mt-4 w-12 h-1 bg-brand-accent dark:bg-brand-accent-dark mx-auto rounded-full" />
-          
-          <div className="mt-8 p-3.5 bg-zinc-100 dark:bg-dark-card rounded-xl border border-zinc-200 dark:border-dark-border text-xs text-zinc-600 dark:text-zinc-300 text-center max-w-xl mx-auto flex items-center justify-center gap-2">
-            <Sparkles className="w-4 h-4 text-brand-accent dark:text-brand-accent-dark shrink-0" />
-            <span>Interactive Node View enabled! You can also paste direct screenshot URLs or upload files below to customize.</span>
-          </div>
         </div>
 
         {/* Filter Navigation */}
@@ -467,8 +408,8 @@ export default function Projects() {
                 className="bg-white dark:bg-dark-card rounded-2xl border border-zinc-200 dark:border-dark-border shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:scale-[1.03]"
               >
                 {/* Visual Header / Mockup Visual Area */}
-                <div className="h-56 bg-zinc-950 p-4 border-b border-zinc-200 dark:border-dark-border relative group/mockup flex flex-col justify-between">
-                  {/* Render deployed or preview image if present */}
+                <div className="h-56 bg-zinc-950 p-4 border-b border-zinc-200 dark:border-dark-border relative flex flex-col justify-between">
+                  {/* Render deployed image if present, otherwise CSS Node Flow Map */}
                   {projectImage ? (
                     <img
                       src={projectImage}
@@ -478,47 +419,10 @@ export default function Projects() {
                       className="absolute inset-0 w-full h-full object-cover z-10"
                     />
                   ) : (
-                    /* Render CSS Node Flow Map by default */
                     <div className="absolute inset-0 z-0 p-4 opacity-90 group-hover:opacity-100 transition-opacity">
                       {renderWorkflowVisualizer(project.mockupType)}
                     </div>
                   )}
-
-                  {/* Upload Controls Layer (Overlayed elegantly) */}
-                  <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity z-25 flex flex-col items-center justify-center p-4 space-y-3">
-                    <p className="text-white font-mono text-[10px] text-center max-w-xs font-medium">
-                      Preview a workflow screenshot on this device. Add permanent images in public/images/projects.
-                    </p>
-                    <div className="flex gap-2.5">
-                      <button
-                        onClick={() => handleImageUrlPaste(project.id)}
-                        className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
-                      >
-                        <Image className="w-3.5 h-3.5" /> Direct URL
-                      </button>
-                      <label className="px-3 py-1.5 bg-brand-accent hover:bg-brand-accent-hover text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
-                        <Settings className="w-3.5 h-3.5" /> Upload File
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(project.id, e)}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                    {projectImages[project.id] && (
-                      <button
-                        onClick={() => setProjectImages(prev => {
-                          const updated = { ...prev };
-                          delete updated[project.id];
-                          return updated;
-                        })}
-                        className="text-[10px] text-red-400 hover:text-red-300 underline font-mono font-bold cursor-pointer"
-                      >
-                        Reset Preview
-                      </button>
-                    )}
-                  </div>
 
                   {/* Platform Indicator on top */}
                   <div className="z-10 self-start">
@@ -581,8 +485,8 @@ export default function Projects() {
                   className="bg-white dark:bg-dark-card rounded-2xl border border-zinc-200 dark:border-dark-border shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between overflow-hidden group/cert hover:scale-[1.03] relative"
                 >
                   {/* Certificate Mockup Visual Area */}
-                  <div className="h-52 bg-zinc-950 border-b border-zinc-200 dark:border-dark-border relative group/mockup flex flex-col justify-between overflow-hidden">
-                    {/* Render deployed or preview certificate image if present */}
+                  <div className="h-52 bg-zinc-950 border-b border-zinc-200 dark:border-dark-border relative flex flex-col justify-between overflow-hidden">
+                    {/* Render deployed certificate image if present, otherwise vector badge */}
                     {certificateImage ? (
                       <img
                         src={certificateImage}
@@ -592,7 +496,6 @@ export default function Projects() {
                         className="absolute inset-0 w-full h-full object-cover z-10"
                       />
                     ) : (
-                      /* Render elegant SVG/CSS vector certificate badge directly inside the grid slot */
                       <div className="absolute inset-0 z-0 p-5 bg-gradient-to-br from-zinc-900 to-zinc-950 text-zinc-100 flex flex-col justify-between text-center relative font-serif border-4 border-double border-zinc-800">
                         <div className="absolute top-1 left-1 right-1 bottom-1 border border-zinc-800/60 pointer-events-none" />
                         
@@ -634,42 +537,6 @@ export default function Projects() {
                         </div>
                       </div>
                     )}
-
-                    {/* Elegant Upload Overlays (matching workflows style exactly) */}
-                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/mockup:opacity-100 transition-opacity duration-200 z-20 flex flex-col items-center justify-center p-4 space-y-2.5">
-                      <p className="text-white font-mono text-[9px] text-center max-w-xs font-medium">
-                        Preview a certificate image on this device. Add permanent images in public/images/certificates.
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleCertificateImageUrlPaste(cert.id)}
-                          className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                        >
-                          <Image className="w-3 h-3" /> Direct URL
-                        </button>
-                        <label className="px-2.5 py-1.5 bg-brand-accent hover:bg-brand-accent-hover text-white rounded-lg text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1">
-                          <Settings className="w-3 h-3" /> Upload File
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleCertificateImageUpload(cert.id, e)}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                      {certificateImages[cert.id] && (
-                        <button
-                          onClick={() => setCertificateImages(prev => {
-                            const updated = { ...prev };
-                            delete updated[cert.id];
-                            return updated;
-                          })}
-                          className="text-[9px] text-red-400 hover:text-red-300 underline font-mono font-bold cursor-pointer"
-                        >
-                          Reset Preview
-                        </button>
-                      )}
-                    </div>
                   </div>
 
                   {/* Card Info Details Area */}
@@ -788,7 +655,6 @@ export default function Projects() {
               {/* Modal Body: Beautiful certificate display */}
               <div className="p-6 sm:p-8 space-y-6 flex flex-col items-center">
                 {getCertificateImage(selectedCertificate) ? (
-                  /* Deployed or preview certificate image */
                   <div className="w-full aspect-[4/3] rounded-xl overflow-hidden border border-zinc-200 dark:border-dark-border relative shadow bg-zinc-900 flex items-center justify-center">
                     <img
                       src={getCertificateImage(selectedCertificate)}
@@ -846,40 +712,6 @@ export default function Projects() {
                     </div>
                   </div>
                 )}
-
-                {/* Direct action to change image */}
-                <div className="w-full flex flex-col items-center gap-2 text-center p-3.5 bg-zinc-50 dark:bg-dark-bg rounded-xl border border-zinc-200 dark:border-dark-border">
-                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">Preview a certificate image here, or add it permanently in public/images/certificates.</span>
-                  <div className="flex gap-2.5 mt-1">
-                    <button
-                      onClick={() => handleCertificateImageUrlPaste(selectedCertificate.id)}
-                      className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
-                    >
-                      <Image className="w-3.5 h-3.5" /> Direct URL
-                    </button>
-                    <label className="px-3 py-1.5 bg-brand-accent hover:bg-brand-accent-hover text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
-                      <Settings className="w-3.5 h-3.5" /> Upload File
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleCertificateImageUpload(selectedCertificate.id, e)}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                  {certificateImages[selectedCertificate.id] && (
-                    <button
-                      onClick={() => setCertificateImages(prev => {
-                        const updated = { ...prev };
-                        delete updated[selectedCertificate.id];
-                        return updated;
-                      })}
-                      className="text-[10px] text-red-500 hover:text-red-400 underline font-mono font-bold mt-1.5 cursor-pointer"
-                    >
-                      Reset Preview
-                    </button>
-                  )}
-                </div>
               </div>
 
               {/* Modal Footer */}
